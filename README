@@ -1,0 +1,149 @@
+# eDepot Database Project
+
+This project is a Java database application that connects to an Oracle database using JDBC. It uses Maven for dependency management and an Oracle Wallet for secure database access.
+
+## Project Structure
+
+## Project Structure
+
+This project uses the standard Maven layout:
+
+```text
+eDepot/
+├── pom.xml
+├── README.md
+├── .gitignore
+├── Wallet_eDepot/                  # Local Oracle Wallet directory, not committed
+├── target/                         # Maven build output, not committed
+└── src/
+    ├── main/
+    │   └── java/
+    │       └── org/
+    │           └── ivc/
+    │               └── dbms/
+    │                   ├── Main.java
+    │                   ├── Database.java
+    │                   └── ...
+    └── test/
+        └── java/
+            └── org/
+                └── ivc/
+                    └── dbms/
+                        └── ...    
+```
+
+### Important Notes
+
+The Java package name is:
+
+```java
+package org.ivc.dbms;
+```
+
+Because of that package name, all main Java files should be located inside:
+
+```text
+src/main/java/org/ivc/dbms/
+```
+
+The Maven `pom.xml` should be committed to GitHub because it defines the project dependencies and build setup.
+
+The following should **not** be committed:
+
+```text
+Wallet_eDepot/
+target/
+.env
+database passwords
+compiled .class files
+```
+
+## Requirements
+
+Before running the project, make sure you have:
+
+- Java installed
+- Maven installed
+- Access to the Oracle database
+- The Oracle Wallet for the database
+- Database username and password
+
+Check that Java and Maven are installed:
+
+```bash
+java --version
+mvn --version
+```
+
+## Oracle Wallet Setup
+
+This project expects the Oracle Wallet folder to be named:
+
+```text
+Wallet_eDepot
+```
+
+Place this folder in the root of the project, at the same level as `pom.xml`.
+
+Example:
+
+```text
+eDepot/
+├── pom.xml
+├── src/
+└── Wallet_eDepot/
+    ├── tnsnames.ora
+    ├── sqlnet.ora
+    ├── cwallet.sso
+    └── ...
+```
+
+The database connection URL in `Database.java` uses this wallet path:
+
+```java
+"jdbc:oracle:thin:@edepot_tp?TNS_ADMIN=Wallet_eDepot"
+```
+
+If your wallet folder has a different name or location, update the `TNS_ADMIN` part of the connection URL.
+
+## Username and Password Setup
+
+For security, the database username and password should not be written directly in the Java source code.
+
+Instead, this project reads them from environment variables:
+
+```java
+System.getenv("DB_USER")
+System.getenv("DB_PASSWORD")
+```
+
+Before running the project, export your database username and password in the terminal.
+
+```bash
+export DB_USER="ADMIN"
+export DB_PASSWORD="your_actual_password_here"
+```
+
+
+## Maven Setup
+
+This project uses Maven, so dependencies are managed through `pom.xml`.
+
+To compile the project:
+
+```bash
+mvn compile
+```
+
+To run the project:
+
+```bash
+mvn exec:java
+```
+Make sure:
+
+1. The wallet folder is in the project root.
+2. The wallet folder is named `Wallet_eDepot`.
+3. `DB_USER` and `DB_PASSWORD` are exported in the same terminal.
+4. You are running Maven from the folder containing `pom.xml`.
+

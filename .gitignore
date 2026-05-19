@@ -1,0 +1,32 @@
+# Java / Maven build output
+target/
+*.class
+
+# IDE/editor files
+.vscode/
+.idea/
+*.iml
+
+# Mac files
+.DS_Store
+
+# Environment variables / secrets
+.env
+*.env
+
+# Oracle wallet / database credentials
+wallet/
+Wallet_*/
+*.sso
+*.p12
+*.jks
+tnsnames.ora
+sqlnet.ora
+ojdbc.properties
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
