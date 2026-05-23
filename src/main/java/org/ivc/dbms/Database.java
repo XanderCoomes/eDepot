@@ -5,6 +5,8 @@ import java.util.Properties;
 import oracle.jdbc.OracleConnection;
 import oracle.jdbc.pool.OracleDataSource;
 
+
+//NOTE BEFORE EXECUTION: need to export the username & password
 public class Database {
     private static final String DB_URL =
         "jdbc:oracle:thin:@edepot_tp?TNS_ADMIN=Wallet_eDepot";
