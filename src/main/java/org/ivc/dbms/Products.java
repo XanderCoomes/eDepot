@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class Products {
-    public static String getStockNum(Connection connection, String manufacturer, String model_number) throws SQLException, ProductNotFoundException{
+    public static String getStockNum(Connection connection, String manufacturer, String modelNumber) throws SQLException{
         String query = """
                 SELECT stock_num
                 FROM PRODUCTS 
@@ -14,32 +14,102 @@ public class Products {
                 """;
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, manufacturer);
-            statement.setString(2, model_number);
+            statement.setString(2, modelNumber);
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return resultSet.getString("stock_num");
                 } else {
-                    throw new ProductNotFoundException(manufacturer, model_number);
+                    throw new SQLException("No stock_num found with manufacturer: " + manufacturer + " and model number: " + modelNumber);
                 }
             }
         }
     }
+
+    public static int getMinStockLevel(Connection connection, String stockNum) throws SQLException {
+        String query = """
+                SELECT min_stock_level
+                FROM PRODUCTS
+                WHERE stock_num = ?
+                """;
     
-    public static int getQuantity(Connection connection, String stock_num) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, stockNum);
+    
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("min_stock_level");
+                } else {
+                    throw new SQLException("No product found with stock_num: " + stockNum);
+                }
+            }
+        }
+    }
+
+    public static int setReplenishment(Connection connection, String stockNum, int newReplenishment) throws SQLException {
+        String query = """
+                UPDATE PRODUCTS
+                SET replenishment = ?
+                WHERE stock_num = ?
+                """;
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, newReplenishment);
+            statement.setString(2, stockNum);
+
+            return statement.executeUpdate();
+        }
+    }
+
+    public static int getReplenishment(Connection connection, String stockNum) throws SQLException {
+        String query = """
+                SELECT replenishment
+                FROM PRODUCTS
+                WHERE stock_num = ?
+                """;
+    
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, stockNum);
+    
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("replenishment");
+                } else {
+                    throw new SQLException("No product found with stock_num: " + stockNum);
+                }
+            }
+        }
+    }
+
+    public static int setQuantity(Connection connection, String stockNum, int newQuantity) throws SQLException {
+        String query = """
+                UPDATE PRODUCTS
+                SET quantity = ?
+                WHERE stock_num = ?
+                """;
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, newQuantity);
+            statement.setString(2, stockNum);
+
+            return statement.executeUpdate();
+        }
+    }
+    
+    public static int getQuantity(Connection connection, String stockNum) throws SQLException {
         String query = """
                 SELECT quantity
                 FROM PRODUCTS
                 WHERE stock_num = ?
                 """;
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, stock_num);
+            statement.setString(1, stockNum);
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return resultSet.getInt("quantity");
                 } else {
-                    throw new SQLException("No product found with stock_num: " + stock_num);
+                    throw new SQLException("No product found with stock number: " + stockNum);
                 }
             }
         }
@@ -86,4 +156,5 @@ public class Products {
             System.out.println(e);
         }
     }
+
 }

@@ -28,6 +28,6 @@ CREATE TABLE SHIPITEMS(
     PRIMARY KEY(notice_id, manufacturer, model_number), 
     FOREIGN KEY(manufacturer, model_number) REFERENCES PRODUCTS(manufacturer, model_number), 
     FOREIGN KEY(notice_id) REFERENCES SHIPNOTICES(notice_id)
-)
+);
 
 
