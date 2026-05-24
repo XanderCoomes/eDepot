@@ -5,7 +5,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class Products {
+//data access object
+public class ProductDAO {
 
     public static void addProduct(Connection connection, String stockNum, String locationID, String manufacturer, String modelNumber, int minStockLevel, int maxStockLevel, int quantity) throws SQLException {
         String query = """
@@ -114,26 +115,6 @@ public class Products {
                     return resultSet.getString("stock_num");
                 } else {
                     throw new SQLException("No stock_num found with manufacturer: " + manufacturer + " and model number: " + modelNumber);
-                }
-            }
-        }
-    }
-
-    public static int getMinStockLevel(Connection connection, String stockNum) throws SQLException {
-        String query = """
-                SELECT min_stock_level
-                FROM PRODUCTS
-                WHERE stock_num = ?
-                """;
-    
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, stockNum);
-    
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getInt("min_stock_level");
-                } else {
-                    throw new SQLException("No product found with stock_num: " + stockNum);
                 }
             }
         }

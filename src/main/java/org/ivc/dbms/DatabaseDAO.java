@@ -7,7 +7,7 @@ import oracle.jdbc.pool.OracleDataSource;
 
 
 //NOTE BEFORE EXECUTION: need to export the username & password
-public class Database {
+public class DatabaseDAO {
     private static final String DB_URL =
         "jdbc:oracle:thin:@edepot_tp?TNS_ADMIN=Wallet_eDepot";
     private static final String DB_USER = System.getenv("DB_USER");

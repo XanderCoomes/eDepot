@@ -4,39 +4,35 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
-public class Shipments {
-    public static void addShipmentItem(Connection connection, String noticeId, String manufacturer, String modelNumber, int quantity) throws SQLException {
+public class ShipmentDAO {
+    public static void addShipmentItems(Connection connection, String noticeId, List<Item> shipmentItems) throws SQLException {
         String query = """
                 INSERT INTO SHIPITEMS (
-                    manufacturer,
-                    model_number,
+                    stock_num,
                     notice_id,
                     quantity
                 )
-                VALUES (?, ?, ?, ?)
+                VALUES (?, ?, ?)
                 """;
-
+    
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, manufacturer);
-            statement.setString(2, modelNumber);
-            statement.setString(3, noticeId);
-            statement.setInt(4, quantity);
-
-            int rowsInserted = statement.executeUpdate();
-
-            if (rowsInserted != 1) {
-                throw new SQLException(
-                        "Shipment item insert failed for notice_id: "
-                        + noticeId
-                        + ", manufacturer: "
-                        + manufacturer
-                        + ", model_number: "
-                        + modelNumber
-                );
+            for (Item item : shipmentItems) {
+                statement.setString(1, item.getStockNum());
+                statement.setString(2, noticeId);
+                statement.setInt(3, item.getQuantity());
+                statement.addBatch();
+            }
+    
+            int[] rowsInserted = statement.executeBatch();
+    
+            for (int rows : rowsInserted) {
+                if (rows != 1) {
+                    throw new SQLException("One or more shipment item inserts failed for notice_id: " + noticeId);
+                }
             }
         }
     }
-    
+
     public static void addShippingNotice(Connection connection, String noticeId, String carrier, String status) throws SQLException {
         String query = """
                 INSERT INTO SHIPNOTICES (
@@ -59,14 +55,12 @@ public class Shipments {
             }
         }
     }
-
+    
     //precondition: products are already in the depot
-    public static void setReplenishments(Connection connection, List<ShipmentItem> items) throws SQLException{
-        for (ShipmentItem item: items){
-            String stockNum = Products.getStockNum(connection, item.getManufacturer(), item.getModelNumber());
-            Products.setReplenishment(connection, stockNum, item.getQuantity());        }
+    public static void setReplenishments(Connection connection, List<Item> shipmentItems) throws SQLException{
+        for (Item shipmentItem: shipmentItems){
+            ProductDAO.setReplenishment(connection, shipmentItem.getStockNum(), shipmentItem.getQuantity());        }
     }
-
 
 
     }

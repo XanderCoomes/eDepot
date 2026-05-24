@@ -19,12 +19,11 @@ CREATE TABLE SHIPNOTICES(
 );
 
 CREATE TABLE SHIPITEMS(
-    manufacturer VARCHAR(50),
-    model_number VARCHAR(50),
+    stock_num CHAR(7),
     notice_id VARCHAR(50), 
     quantity INT, 
-    PRIMARY KEY(manufacturer, model_number, notice_id), 
-    FOREIGN KEY(manufacturer, model_number) REFERENCES PRODUCTS(manufacturer, model_number), 
+    PRIMARY KEY(stock_num, notice_id), 
+    FOREIGN KEY(stock_num) REFERENCES PRODUCTS(stock_num), 
     FOREIGN KEY(notice_id) REFERENCES SHIPNOTICES(notice_id)
 );
 
