@@ -2,6 +2,7 @@ package org.ivc.dbms;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.List;
 
 public class Shipments {
     public static void addShipmentItem(Connection connection, String noticeId, String manufacturer, String modelNumber, int quantity) throws SQLException {
@@ -60,8 +61,12 @@ public class Shipments {
     }
 
     //precondition: products are already in the depot
-    public static void replenish(Connection connection, String noticeID, String manufacturer, String modelNumber, int quantity) throws SQLException{
-        String stockNum = Products.getStockNum(connection, manufacturer, modelNumber);
-        Products.setReplenishment(connection, stockNum, quantity);
+    public static void setReplenishments(Connection connection, List<ShipmentItem> items) throws SQLException{
+        for (ShipmentItem item: items){
+            String stockNum = Products.getStockNum(connection, item.getManufacturer(), item.getModelNumber());
+            Products.setReplenishment(connection, stockNum, item.getQuantity());        }
     }
-}
+
+
+
+    }
