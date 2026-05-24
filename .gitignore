@@ -30,3 +30,6 @@ ojdbc.properties
 # Temporary files
 *.tmp
 *.bak
+
+#password files
+password.txt

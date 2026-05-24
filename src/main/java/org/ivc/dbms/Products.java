@@ -6,6 +6,70 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class Products {
+    // public static void addProduct(Connection connection, String manufacturer, String modelNumber, int min_stock_level, int max_stock_level) throws SLQException{
+    //     String stockNum = newStockNum(connection);
+
+    // }
+    
+    public static String newStockNum(Connection connection) throws SQLException{
+        String query = """
+            SELECT MAX(stock_num) AS max_stock_num
+            FROM PRODUCTS
+            """;
+
+        try (
+            PreparedStatement statement = connection.prepareStatement(query);
+            ResultSet resultSet = statement.executeQuery()
+        ) {
+            if (resultSet.next()) {
+                String maxStockNum = resultSet.getString("max_stock_num");
+
+                if (maxStockNum == null) {
+                    return "AA00000";
+                }
+
+                return incrementStockNum(maxStockNum);
+            }
+
+            return "AA00000";
+        }
+
+    }
+
+    private static String incrementStockNum(String stockNum) throws SQLException {
+        String prefix = stockNum.substring(0, 2);   // "AA"
+        String numberPart = stockNum.substring(2); // "00042"
+    
+        int number = Integer.parseInt(numberPart);
+    
+        if (number < 99999) {
+            number++;
+            return prefix + String.format("%05d", number);
+        }
+    
+        String nextPrefix = incrementPrefix(prefix);
+        return nextPrefix + "00000";
+    }
+
+    private static String incrementPrefix(String prefix) throws SQLException {
+        char first = prefix.charAt(0);
+        char second = prefix.charAt(1);
+    
+        if (second < 'Z') {
+            second++;
+        } else {
+            second = 'A';
+    
+            if (first < 'Z') {
+                first++;
+            } else {
+                throw new SQLException("No stock numbers remaining.");
+            }
+        }
+    
+        return "" + first + second;
+    }
+
     public static String getStockNum(Connection connection, String manufacturer, String modelNumber) throws SQLException{
         String query = """
                 SELECT stock_num
