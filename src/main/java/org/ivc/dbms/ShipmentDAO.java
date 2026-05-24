@@ -34,20 +34,19 @@ public class ShipmentDAO {
         }
     }
 
-    public static void addShippingNotice(Connection connection, String noticeID, String carrier, String status) throws SQLException {
+    public static void addShippingNotice(Connection connection, String noticeID, String carrier) throws SQLException {
         String query = """
                 INSERT INTO SHIPNOTICES (
                     notice_id,
                     carrier,
                     shipping_status
                 )
-                VALUES (?, ?, ?)
+                VALUES (?, ?, 0)
                 """;
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, noticeID);
             statement.setString(2, carrier);
-            statement.setString(3, status);
 
             int rowsInserted = statement.executeUpdate();
 
@@ -57,9 +56,9 @@ public class ShipmentDAO {
         }
     }
     
-    public static void processShipNotice(Connection connection, String noticeID, String carrier, String status, List<Item> shipmentItems) throws SQLException{
+    public static void processShipNotice(Connection connection, String noticeID, String carrier, List<Item> shipmentItems) throws SQLException{
         addShipmentItems(connection, noticeID, shipmentItems); 
-        addShippingNotice(connection, noticeID, carrier, status);
+        addShippingNotice(connection, noticeID, carrier);
         setReplenishments(connection, shipmentItems); 
     }
     
@@ -69,7 +68,7 @@ public class ShipmentDAO {
             ProductDAO.setReplenishment(connection, shipmentItem.getStockNum(), shipmentItem.getQuantity());        }
     }
 
-    public static void updateShipmentStatus(Connection connection, String noticeID, String status) throws SQLException {
+    public static void updateShipmentStatus(Connection connection, String noticeID) throws SQLException {
         String query = """
                 UPDATE SHIPNOTICES
                 SET shipping_status = ?
@@ -77,7 +76,7 @@ public class ShipmentDAO {
                 """;
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, status);
+            statement.setInt(1, 1);
             statement.setString(2, noticeID);
 
             int rowsUpdated = statement.executeUpdate();
@@ -109,6 +108,7 @@ public class ShipmentDAO {
     }
 
     public static void receiveShipment(Connection connection, String noticeId) throws SQLException {
+        //check status is unfilled first
         String query = """
                 UPDATE PRODUCTS
                 SET quantity = quantity + replenishment,
@@ -129,14 +129,9 @@ public class ShipmentDAO {
                 throw new SQLException("No shipment items found for notice_id: " + noticeId);
             }
         }
+
+        //update status
     }
-
-
-
-
-
-
-
 
 
     }

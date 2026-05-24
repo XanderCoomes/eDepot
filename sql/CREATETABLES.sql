@@ -13,9 +13,10 @@ CREATE TABLE PRODUCTS (
 
 CREATE TABLE SHIPNOTICES(
     notice_id VARCHAR(50),
-    carrier VARCHAR(50), 
-    shipping_status VARCHAR(50),
-    PRIMARY KEY(notice_id)
+    carrier VARCHAR(50),
+    is_filled INT,
+    PRIMARY KEY(notice_id),
+    CHECK (is_filled IN (0, 1))
 );
 
 CREATE TABLE SHIPITEMS(
