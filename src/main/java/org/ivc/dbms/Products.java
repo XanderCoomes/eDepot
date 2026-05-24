@@ -6,10 +6,39 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class Products {
-    // public static void addProduct(Connection connection, String manufacturer, String modelNumber, int min_stock_level, int max_stock_level) throws SLQException{
-    //     String stockNum = newStockNum(connection);
 
-    // }
+    public static void addProduct(Connection connection, String stockNum, String locationID, String manufacturer, String modelNumber, int minStockLevel, int maxStockLevel, int quantity) throws SQLException {
+        String query = """
+                INSERT INTO PRODUCTS (
+                    stock_num,
+                    location_id,
+                    manufacturer,
+                    model_number,
+                    quantity,
+                    min_stock_level,
+                    max_stock_level,
+                    replenishment
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """;
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, stockNum);
+            statement.setString(2, locationID);      
+            statement.setString(3, manufacturer);
+            statement.setString(4, modelNumber);
+            statement.setInt(5, quantity);
+            statement.setInt(6, minStockLevel);
+            statement.setInt(7, maxStockLevel);
+            statement.setInt(8, 0);                // no replenishment initially
+
+            int rowsInserted = statement.executeUpdate();
+
+            if (rowsInserted != 1) {
+                throw new SQLException("Product insert failed for stock_num: " + stockNum);
+            }
+        }
+    }
     
     public static String newStockNum(Connection connection) throws SQLException{
         String query = """

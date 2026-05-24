@@ -1,7 +1,6 @@
 package org.ivc.dbms;
 import java.io.FileInputStream;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -13,28 +12,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class ProductLoader {
 
     public static void loadProducts(Connection connection, String excelFilePath) throws Exception {
-        String sql = """
-            INSERT INTO products (
-                stock_num,
-                location_id,
-                manufacturer,
-                model_number,
-                quantity,
-                min_stock_level,
-                max_stock_level,
-                replenishment
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """;
-
         try (
             FileInputStream file = new FileInputStream(excelFilePath);
-            Workbook workbook = new XSSFWorkbook(file);
-            PreparedStatement statement = connection.prepareStatement(sql)
+            Workbook workbook = new XSSFWorkbook(file)
         ) {
             Sheet sheet = workbook.getSheetAt(0);
-
-            int count = 0;
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
@@ -52,7 +34,7 @@ public class ProductLoader {
                     continue;
                 }
 
-                if("ID".equals(stockNum)){
+                if ("ID".equals(stockNum)) {
                     break;
                 }
 
@@ -63,22 +45,17 @@ public class ProductLoader {
                 int maxStock = getInt(row.getCell(10));           // Max
                 String locationId = getString(row.getCell(11));   // Location
 
-                int replenishment = 0;
-
-                statement.setString(1, stockNum);
-                statement.setString(2, locationId);
-                statement.setString(3, manufacturer);
-                statement.setString(4, modelNumber);
-                statement.setInt(5, quantity);
-                statement.setInt(6, minStock);
-                statement.setInt(7, maxStock);
-                statement.setInt(8, replenishment);
-
-                statement.executeUpdate();
-                count++;
+                Products.addProduct(
+                        connection,
+                        stockNum,
+                        locationId,
+                        manufacturer,
+                        modelNumber,
+                        minStock,
+                        maxStock,
+                        quantity
+                );
             }
-
-            System.out.println("Imported " + count + " products.");
         }
     }
 

@@ -4,25 +4,20 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class Shipments {
-    public static void receiveNotice(Connection connection, String noticeID, String date, List<ShipmentItem> items) throws SQLException{
+
+    
+    //precondition: all products are already in the depot
+    public static void setReplenishments(Connection connection, String noticeID, String date, List<ShipmentItem> items) throws SQLException{
         String manufacturer; 
-        String model_number; 
+        String modelNumber; 
         int quantity; 
-        String stock_num; 
+        String stockNum; 
         for(ShipmentItem item: items){
             manufacturer = item.getManufacturer(); 
-            model_number = item.getModelNumber();
+            modelNumber = item.getModelNumber();
             quantity = item.getQuantity();
-            try{
-                stock_num = Products.getStockNum(connection, manufacturer, model_number);
-            }catch(SQLException e){ 
-                stock_num = Products.addProduct(connection, manufacturer, model_number);
-            }
+            stockNum = Products.getStockNum(connection, manufacturer, modelNumber);
+            Products.setReplenishment(connection, stockNum, quantity);
         }
     }
-
-    public static void createNotice(Connection connection, String noticeID, String date){
-
-    }
-
 }
