@@ -4,7 +4,8 @@ import oracle.jdbc.OracleConnection;
 public class Main {
     public static void main(String[] args) {
         try (OracleConnection connection = DatabaseDAO.getConnection()) {
-            Tester.test(connection); 
+            // Tester.test(connection); 
+            ExternalWorld.runInterface(connection);
         
         } catch (Exception e) {
             System.out.println("ERROR:");

@@ -1,45 +1,12 @@
 package org.ivc.dbms;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Tester {
-    public static void resetDatabase(Connection connection) throws SQLException {
-        String deleteShipItems = "DELETE FROM SHIPITEMS";
-        String deleteShipNotices = "DELETE FROM SHIPNOTICES";
-        String deleteProducts = "DELETE FROM PRODUCTS";
-
-        boolean oldAutoCommit = connection.getAutoCommit();
-
-        try {
-            connection.setAutoCommit(false);
-
-            try (PreparedStatement ps = connection.prepareStatement(deleteShipItems)) {
-                ps.executeUpdate();
-            }
-
-            try (PreparedStatement ps = connection.prepareStatement(deleteShipNotices)) {
-                ps.executeUpdate();
-            }
-
-            try (PreparedStatement ps = connection.prepareStatement(deleteProducts)) {
-                ps.executeUpdate();
-            }
-
-            connection.commit();
-
-        } catch (SQLException e) {
-            connection.rollback();
-            throw e;
-        } finally {
-            connection.setAutoCommit(oldAutoCommit);
-        }
-    }
-
     public static void test(Connection connection) throws Exception{
-        resetDatabase(connection);
+        UtilsDAO.resetDatabase(connection);
         ProductLoader.loadProducts(connection, "data/StarterData.xlsx"); //Load products into database
         ProductDAO.printProducts(connection);
 
