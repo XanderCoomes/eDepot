@@ -10,7 +10,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ProductLoader {
-
     public static void loadProducts(Connection connection, String excelFilePath) throws Exception {
         try (
             FileInputStream file = new FileInputStream(excelFilePath);
