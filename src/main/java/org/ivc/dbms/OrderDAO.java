@@ -20,7 +20,7 @@ public class OrderDAO {
         }
     }
 
-    public static void sendReplenishmentOrder(Connection connection, String manufacturer, List<String> lowStockNums) throws SQLException {
+    public static void printReplenishmentOrder(Connection connection, String manufacturer, List<String> lowStockNums) throws SQLException {
         if (lowStockNums == null || lowStockNums.isEmpty()) {
             System.out.println("No replenishment items for manufacturer: " + manufacturer);
             return;
@@ -36,7 +36,7 @@ public class OrderDAO {
                 """.formatted(placeholders);
     
         System.out.println("Replenishment order for manufacturer: " + manufacturer);
-        System.out.println("Items to replenish:");
+        System.out.println("Model numbers to replenish:");
     
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, manufacturer);
@@ -47,10 +47,9 @@ public class OrderDAO {
     
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    String resultManufacturer = resultSet.getString("manufacturer");
                     String modelNumber = resultSet.getString("model_number");
     
-                    System.out.println("(" + resultManufacturer + ", " + modelNumber + ")");
+                    System.out.println(modelNumber);
                 }
             }
         }
@@ -63,7 +62,7 @@ public class OrderDAO {
         for(String manufacturer: manufacturers){
             if(isManufacturerLow(connection, manufacturer)){
                 lowStockNums = getStockNumsBelowMaxByManufacturer(connection, manufacturer); 
-                sendReplenishmentOrder(connection, manufacturer, lowStockNums); 
+                printReplenishmentOrder(connection, manufacturer, lowStockNums); 
             }
         }
     }

@@ -44,16 +44,9 @@ public class ProductLoader {
                 int maxStock = getInt(row.getCell(10));           // Max
                 String locationId = getString(row.getCell(11));   // Location
 
-                ProductDAO.addProduct(
-                        connection,
-                        stockNum,
-                        locationId,
-                        manufacturer,
-                        modelNumber,
-                        minStock,
-                        maxStock,
-                        quantity
-                );
+                Product p = new Product(stockNum, locationId, manufacturer, modelNumber, quantity, minStock, maxStock, 0);
+
+                ProductDAO.addProduct(connection, p);
             }
         }
     }

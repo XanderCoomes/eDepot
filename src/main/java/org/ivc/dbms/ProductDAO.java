@@ -8,7 +8,7 @@ import java.sql.Statement;
 //data access object
 public class ProductDAO {
 
-    public static void addProduct(Connection connection, String stockNum, String locationID, String manufacturer, String modelNumber, int minStockLevel, int maxStockLevel, int quantity) throws SQLException {
+    public static void addProduct(Connection connection, Product p) throws SQLException {
         String query = """
                 INSERT INTO PRODUCTS (
                     stock_num,
@@ -24,19 +24,19 @@ public class ProductDAO {
                 """;
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, stockNum);
-            statement.setString(2, locationID);      
-            statement.setString(3, manufacturer);
-            statement.setString(4, modelNumber);
-            statement.setInt(5, quantity);
-            statement.setInt(6, minStockLevel);
-            statement.setInt(7, maxStockLevel);
-            statement.setInt(8, 0);                // no replenishment initially
+            statement.setString(1, p.getStockNum());
+            statement.setString(2, p.getLocationId());      
+            statement.setString(3, p.getManufacturer());
+            statement.setString(4, p.getModelNumber());
+            statement.setInt(5, p.getQuantity());
+            statement.setInt(6, p.getMinStockLevel());
+            statement.setInt(7, p.getMaxStockLevel());
+            statement.setInt(8, p.getReplenishment());       
 
             int rowsInserted = statement.executeUpdate();
 
             if (rowsInserted != 1) {
-                throw new SQLException("Product insert failed for stock_num: " + stockNum);
+                throw new SQLException("Product insert failed for stock_num: " + p.getStockNum());
             }
         }
     }

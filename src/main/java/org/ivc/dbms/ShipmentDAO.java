@@ -39,7 +39,7 @@ public class ShipmentDAO {
                 INSERT INTO SHIPNOTICES (
                     notice_id,
                     carrier,
-                    shipping_status
+                    is_filled
                 )
                 VALUES (?, ?, 0)
                 """;
@@ -57,11 +57,10 @@ public class ShipmentDAO {
     }
     
     public static void processShipNotice(Connection connection, String noticeID, String carrier, List<Item> shipmentItems) throws SQLException{
-        addShipmentItems(connection, noticeID, shipmentItems); 
         addShippingNotice(connection, noticeID, carrier);
+        addShipmentItems(connection, noticeID, shipmentItems); 
         setReplenishments(connection, shipmentItems); 
     }
-    
     //precondition: products are already in the depot
     public static void setReplenishments(Connection connection, List<Item> shipmentItems) throws SQLException{
         for (Item shipmentItem: shipmentItems){
@@ -71,13 +70,12 @@ public class ShipmentDAO {
     public static void updateShipmentStatus(Connection connection, String noticeID) throws SQLException {
         String query = """
                 UPDATE SHIPNOTICES
-                SET shipping_status = ?
+                SET is_filled = 1
                 WHERE notice_id = ?
                 """;
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setInt(1, 1);
-            statement.setString(2, noticeID);
+            statement.setString(1, noticeID);
 
             int rowsUpdated = statement.executeUpdate();
 
@@ -87,9 +85,9 @@ public class ShipmentDAO {
         }
     }
 
-    public static String getShipmentStatus(Connection connection, String noticeID) throws SQLException {
+    public static int getShipmentStatus(Connection connection, String noticeID) throws SQLException {
         String query = """
-                SELECT shipping_status
+                SELECT is_filled
                 FROM SHIPNOTICES
                 WHERE notice_id = ?
                 """;
@@ -99,7 +97,7 @@ public class ShipmentDAO {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    return resultSet.getString("shipping_status");
+                    return resultSet.getInt("is_filled");
                 } else {
                     throw new SQLException("No shipment notice found with notice_id: " + noticeID);
                 }
@@ -107,8 +105,11 @@ public class ShipmentDAO {
         }
     }
 
-    public static void receiveShipment(Connection connection, String noticeId) throws SQLException {
-        //check status is unfilled first
+    public static void receiveShipment(Connection connection, String noticeID) throws SQLException {
+        if(getShipmentStatus(connection, noticeID) == 1){
+            return;
+        }
+        updateShipmentStatus(connection, noticeID);
         String query = """
                 UPDATE PRODUCTS
                 SET quantity = quantity + replenishment,
@@ -121,17 +122,14 @@ public class ShipmentDAO {
                 """;
     
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, noticeId);
+            statement.setString(1, noticeID);
     
             int rowsUpdated = statement.executeUpdate();
     
             if (rowsUpdated == 0) {
-                throw new SQLException("No shipment items found for notice_id: " + noticeId);
+                throw new SQLException("No shipment items found for notice_id: " + noticeID);
             }
         }
-
-        //update status
     }
-
 
     }
