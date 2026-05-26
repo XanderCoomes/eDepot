@@ -38,6 +38,7 @@ public class ExternalWorld {
 
     public static void displayState(Connection connection) throws Exception{
         ProductDAO.printProducts(connection);
+        ShipmentDAO.printShipmentNotices(connection);
         displayOptions(); 
     }
 
@@ -186,7 +187,7 @@ public class ExternalWorld {
 
     //FIXME HANDLE BAD INPUTS HERE
     public static void readShipmentDelivery(Connection connection, Scanner scanner) throws Exception{
-        System.out.print("ENTER AN EXISTING NOTICE ID");
+        System.out.print("ENTER AN EXISTING NOTICE ID: ");
         String noticeID = scanner.nextLine();
         ShipmentDAO.receiveShipment(connection, noticeID);
     }

@@ -132,4 +132,63 @@ public class ShipmentDAO {
         }
     }
 
+    public static void printShipmentNotices(Connection connection) throws SQLException {
+        String sql = """
+            SELECT 
+                sn.notice_id,
+                sn.carrier,
+                sn.is_filled,
+                si.stock_num,
+                si.quantity
+            FROM SHIPNOTICES sn
+            LEFT JOIN SHIPITEMS si
+                ON sn.notice_id = si.notice_id
+            ORDER BY sn.notice_id, si.stock_num
+            """;
+    
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+    
+            String currentNoticeID = null;
+            boolean hasAnyNotices = false;
+    
+            while (resultSet.next()) {
+                hasAnyNotices = true;
+    
+                String noticeID = resultSet.getString("notice_id");
+                String carrier = resultSet.getString("carrier");
+                int isFilled = resultSet.getInt("is_filled");
+    
+                if (!noticeID.equals(currentNoticeID)) {
+                    if (currentNoticeID != null) {
+                        System.out.println();
+                    }
+    
+                    currentNoticeID = noticeID;
+    
+                    System.out.println("==============================================");
+                    System.out.println("NOTICE ID: " + noticeID);
+                    System.out.println("CARRIER:   " + carrier);
+                    System.out.println("STATUS:    " + (isFilled == 1 ? "Filled" : "Not Filled"));
+                    System.out.println("----------------------------------------------");
+                    System.out.printf("%-12s %10s%n", "STOCK NUM", "QUANTITY");
+                    System.out.println("----------------------------------------------");
+                }
+    
+                String stockNum = resultSet.getString("stock_num");
+    
+                if (stockNum != null) {
+                    int quantity = resultSet.getInt("quantity");
+    
+                    System.out.printf("%-12s %10d%n", stockNum, quantity);
+                } else {
+                    System.out.println("No shipment items for this notice.");
+                }
+            }
+    
+            if (!hasAnyNotices) {
+                System.out.println("No shipment notices found.");
+            }
+        }
+    }
 }
