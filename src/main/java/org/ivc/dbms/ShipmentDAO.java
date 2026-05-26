@@ -61,7 +61,7 @@ public class ShipmentDAO {
         addShipmentItems(connection, noticeID, shipmentItems); 
         setReplenishments(connection, shipmentItems); 
     }
-    //precondition: products are already in the depot
+
     public static void setReplenishments(Connection connection, List<Item> shipmentItems) throws SQLException{
         for (Item shipmentItem: shipmentItems){
             ProductDAO.setReplenishment(connection, shipmentItem.getStockNum(), shipmentItem.getQuantity());        }
