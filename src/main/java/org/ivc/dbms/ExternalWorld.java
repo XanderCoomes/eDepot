@@ -2,6 +2,8 @@ package org.ivc.dbms;
 import java.sql.Connection;
 import java.util.Scanner;
 import java.util.List;
+import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class ExternalWorld {
     public static void runInterface(Connection connection){
@@ -41,15 +43,24 @@ public class ExternalWorld {
 
     public static void displayOptions(){
         System.out.println("OPTIONS:");
-        System.out.println("1: DELIVER SHIPPIGN NOTICE");
+        System.out.println("1: DELIVER SHIPPING NOTICE");
         System.out.println("2: DELIVER SHIPMENT");
         System.out.println("3: END INTERFACE");
         System.out.print("ENTER OPTION: ");
     }
-    public static String readNoticeID(Scanner scanner, String prompt) throws Exception{
+   
+   //FIXME TO PARSE INPUT PROPERLY & CHECK DATABASE FOR DUPLICATES
+    public static String readNoticeID(Scanner scanner, String prompt){
         System.out.print(prompt);
         String noticeID = scanner.nextLine();
         return noticeID;
+    }
+
+    //FIXME TO PARSE INPUT PROPERLY
+    public static String readLocation(Scanner scanner, String prompt){
+        System.out.print(prompt); 
+        String location = scanner.nextLine(); 
+        return location; 
     }
 
     public static int readPositiveInt(Scanner scanner, String prompt) {
@@ -60,7 +71,7 @@ public class ExternalWorld {
             try {
                 int value = Integer.parseInt(input);
     
-                if (value > 0) {
+                if (value >= 0) {
                     return value;
                 }
     
@@ -101,27 +112,83 @@ public class ExternalWorld {
         }
     }
 
+    public static void printShipmentInfo(String noticeID, String carrier, List<Item> shipmentItems) {
+        System.out.println("NOTICE ID: " + noticeID);
+        System.out.println("CARRIER:   " + carrier);
+        System.out.println();
+    
+        System.out.println("SHIPMENT ITEMS:");
+        System.out.printf("%-20s %-20s %10s%n", "MANUFACTURER", "MODEL NUMBER", "QUANTITY");
+        System.out.println("------------------------------------------------------");
+    
+        for (Item shipmentItem : shipmentItems) {
+            System.out.printf(
+                "%-20s %-20s %10d%n",
+                shipmentItem.getManufacturer(),
+                shipmentItem.getModelNumber(),
+                shipmentItem.getQuantity()
+            );
+        }
+    }
 
     public static void readShipmentNotice(Connection connection, Scanner scanner) throws Exception{
-        String manufacturer = ""; 
-        String modelNumber = ""; 
-        int shipQuantity = 0;
-        boolean keepAddingItems = true;
+        String stockNum; 
+        String manufacturer; 
+        String modelNumber; 
+        String location; 
+        int minStockLevel; 
+        int maxStockLevel; 
+        int shipQuantity;
 
-        String noticeID = readNoticeID(scanner, "ENTER A NOTICE ID");
+        List<Product> newProducts = new ArrayList<>(); 
+        List<Item> shipmentItems = new ArrayList<>(); 
+
+        boolean keepAddingItems;
+
+        String noticeID = readNoticeID(scanner, "ENTER A NOTICE ID: ");
         String carrier = readNonEmptyString(scanner, "ENTER A CARRIER: ");
 
         do{
             manufacturer = readNonEmptyString(scanner, "ENTER A MANUFACTURER: ");
             modelNumber = readNonEmptyString(scanner, "ENTER A MODEL NUMBER: ");
             shipQuantity = readPositiveInt(scanner, "ENTER QUANTITY SHIPPED: ");
+            try{
+                stockNum = ProductDAO.getStockNum(connection, manufacturer, modelNumber);
+
+            }catch(SQLException e){
+                stockNum = ProductDAO.newStockNum(connection);
+                location = readLocation(scanner, "ENTER A LOCATION: ");
+                minStockLevel = readPositiveInt(scanner, "ENTER A MIN STOCK LEVEL: ");
+                maxStockLevel = readPositiveInt(scanner, "ENTER A MAX STOCK LEVEL: "); 
+                Product newProduct = new Product(stockNum, location, manufacturer, modelNumber, 0, minStockLevel, maxStockLevel, 0);
+                newProducts.add(newProduct);
+            }
+            Item shipmentItem = new Item(stockNum, shipQuantity); 
+            shipmentItem.setManufacturer(manufacturer);
+            shipmentItem.setModelNumber(modelNumber);
+
+            shipmentItems.add(shipmentItem);
             keepAddingItems = readYesNo(scanner, "ENTER MORE ITEMS");
         }while(keepAddingItems == true);
 
+        printShipmentInfo(noticeID, carrier, shipmentItems);
+        if(!readYesNo(scanner, "CONFIRM SHIPMENT ORDER")){
+            return;
+        }
+
+        for (Product newProduct : newProducts){
+            ProductDAO.addProduct(connection, newProduct);
+        }
+        
+        ShipmentDAO.processShipNotice(connection, noticeID, carrier, shipmentItems);
+
     }
 
+    //FIXME HANDLE BAD INPUTS HERE
     public static void readShipmentDelivery(Connection connection, Scanner scanner) throws Exception{
-
+        System.out.print("ENTER AN EXISTING NOTICE ID");
+        String noticeID = scanner.nextLine();
+        ShipmentDAO.receiveShipment(connection, noticeID);
     }
 
 }
