@@ -134,16 +134,11 @@ public class ShipmentDAO {
 
     public static void printShipmentNotices(Connection connection) throws SQLException {
         String sql = """
-            SELECT 
-                sn.notice_id,
-                sn.carrier,
-                sn.is_filled,
-                si.stock_num,
-                si.quantity
-            FROM SHIPNOTICES sn
-            LEFT JOIN SHIPITEMS si
-                ON sn.notice_id = si.notice_id
-            ORDER BY sn.notice_id, si.stock_num
+            SELECT N.notice_id, N.carrier, N.is_filled, I.stock_num, I.quantity
+            FROM SHIPNOTICES N
+            LEFT JOIN SHIPITEMS I
+                ON N.notice_id = I.notice_id
+            ORDER BY N.notice_id, I.stock_num
             """;
     
         try (PreparedStatement statement = connection.prepareStatement(sql);
@@ -191,4 +186,20 @@ public class ShipmentDAO {
             }
         }
     }
+
+    public static boolean isNewNoticeID(Connection connection, String noticeID) throws SQLException{
+        String query = """
+                SELECT *
+                FROM SHIPNOTICES
+                WHERE notice_id = ? 
+                """;
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, noticeID);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return !resultSet.next();
+            }
+        }    }
+
 }

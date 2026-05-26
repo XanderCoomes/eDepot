@@ -12,8 +12,7 @@ public class ExternalWorld {
                 UtilsDAO.resetDatabase(connection);
                 ProductLoader.loadProducts(connection, "data/StarterData.xlsx");
                 displayState(connection);
-                int input = scanner.nextInt();
-                scanner.nextLine();
+                int input = readPositiveInt(scanner, "ENTER OPTION: ");
                 while(input != 3){
                     switch (input) {
                         case 1 -> {
@@ -27,12 +26,12 @@ public class ExternalWorld {
                         }
                     }
                     displayState(connection);
-                    input = scanner.nextInt();
-                    scanner.nextLine(); 
+                    input = readPositiveInt(scanner, "ENTER OPTION: ");
                 }
             }
         }catch(Exception e){
-            System.out.println("ERROR DISPLAYING PRODUCTS"); 
+            System.out.println("ERROR DISPLAYING PRODUCTS AND SHIPPING NOTICES"); 
+            System.out.print(e);
         }
     }
 
@@ -47,21 +46,34 @@ public class ExternalWorld {
         System.out.println("1: DELIVER SHIPPING NOTICE");
         System.out.println("2: DELIVER SHIPMENT");
         System.out.println("3: END INTERFACE");
-        System.out.print("ENTER OPTION: ");
     }
    
-   //FIXME TO PARSE INPUT PROPERLY & CHECK DATABASE FOR DUPLICATES
-    public static String readNoticeID(Scanner scanner, String prompt){
-        System.out.print(prompt);
-        String noticeID = scanner.nextLine();
-        return noticeID;
+    public static String readNoticeID(Scanner scanner, Connection connection, String prompt) throws SQLException{
+        String noticeID; 
+        while (true) {
+            noticeID = readNonEmptyString(scanner, prompt);
+            if(ShipmentDAO.isNewNoticeID(connection, noticeID)){
+                return noticeID;
+            }
+            else{
+                System.out.println("NOTICE ID" + noticeID + " WAS ALREADY USED");
+            }
+        }
     }
 
-    //FIXME TO PARSE INPUT PROPERLY
     public static String readLocation(Scanner scanner, String prompt){
-        System.out.print(prompt); 
-        String location = scanner.nextLine(); 
-        return location; 
+        while (true) {
+            System.out.print(prompt);
+            String locationID = scanner.nextLine().trim();
+    
+            if (locationID.matches("[A-Za-z](0|[1-9][0-9]*)")) {
+                return locationID.toUpperCase();
+            }
+    
+            System.out.println(
+                "Improper Location Formatting."
+            );
+        }
     }
 
     public static int readPositiveInt(Scanner scanner, String prompt) {
@@ -146,7 +158,7 @@ public class ExternalWorld {
 
         boolean keepAddingItems;
 
-        String noticeID = readNoticeID(scanner, "ENTER A NOTICE ID: ");
+        String noticeID = readNoticeID(scanner, connection, "ENTER A NOTICE ID: ");
         String carrier = readNonEmptyString(scanner, "ENTER A CARRIER: ");
 
         do{
@@ -185,11 +197,16 @@ public class ExternalWorld {
 
     }
 
-    //FIXME HANDLE BAD INPUTS HERE
-    public static void readShipmentDelivery(Connection connection, Scanner scanner) throws Exception{
-        System.out.print("ENTER AN EXISTING NOTICE ID: ");
-        String noticeID = scanner.nextLine();
-        ShipmentDAO.receiveShipment(connection, noticeID);
+    public static void readShipmentDelivery(Connection connection, Scanner scanner){
+        String noticeID = "SOMETHING";
+        try{
+            noticeID = readNonEmptyString(scanner, "ENTER AN EXISTING NOTICE ID: ");
+            ShipmentDAO.receiveShipment(connection, noticeID);
+    
+        }catch(SQLException e){
+            System.out.println("NO SHIPMENT FOUND WITH NOTICE ID: " + noticeID);
+        } 
+        
     }
 
 }
