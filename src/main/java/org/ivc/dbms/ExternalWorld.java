@@ -170,7 +170,7 @@ public class ExternalWorld {
 
             }catch(SQLException e){
                 stockNum = ProductDAO.newStockNum(connection);
-                location = readLocation(scanner, "ENTER A LOCATION: ");
+                location = readLocation(scanner, "ENTER A LOCATION E.G. (A6): ");
                 minStockLevel = readPositiveInt(scanner, "ENTER A MIN STOCK LEVEL: ");
                 maxStockLevel = readPositiveInt(scanner, "ENTER A MAX STOCK LEVEL: "); 
                 Product newProduct = new Product(stockNum, location, manufacturer, modelNumber, 0, minStockLevel, maxStockLevel, 0);
