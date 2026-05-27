@@ -1,72 +1,145 @@
 package org.ivc.dbms;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Server {
-    // Initialize socket and input stream
-    private Socket s;
+public class Server extends Thread {
     private ServerSocket ss;
-    private DataInputStream in;
+    private final Connection connection;
+    private final int port;
 
-    // Constructor with port
-    public Server(int port) {
-      
-        // Starts server and waits for a connection
-        try
-        {
+    public Server(int port, Connection connection) {
+        this.port = port;
+        this.connection = connection;
+    }
+
+    @Override
+    public void run() {
+        try {
             ss = new ServerSocket(port);
-            System.out.println("Server started");
+            System.out.println("Server started on port " + port);
 
-            System.out.println("Waiting for a client ...");
+            while (true) {
+                System.out.println("Waiting for a client...");
 
-            s = ss.accept();
-            System.out.println("Client accepted");
+                Socket s = ss.accept();
+                System.out.println("Client accepted");
 
-            // Takes input from the client socket
-            in = new DataInputStream(
-                new BufferedInputStream(s.getInputStream()));
+                ClientHandler handler = new ClientHandler(s, connection);
+                handler.start();
+            }
 
-            String request = "";
-            int numItems;
-            String stockNum;
-            int quantity; 
+        } catch (IOException e) {
+            System.out.println("Error in server connection: " + e.getMessage());
+        }
+    }
 
-            // Reads message from client until "Over" is sent
-            while (!request.equals("Over"))
-            {
-                try
-                {
+    private static class ClientHandler extends Thread {
+        private final Socket s;
+        private final Connection connection;
+        private DataInputStream in;
+        private DataOutputStream out;
+
+        public ClientHandler(Socket s, Connection connection) {
+            this.s = s;
+            this.connection = connection;
+        }
+
+        @Override
+        public void run(){
+            try {
+                in = new DataInputStream(
+                    new BufferedInputStream(s.getInputStream())
+                );
+                out = new DataOutputStream(
+                    new BufferedOutputStream(s.getOutputStream())
+                );
+
+                String request = "";
+
+                while (!request.equals("Over")) {
                     request = in.readUTF();
-                    if(request.equals("ORDER")){
-                        System.out.println("ORDER PROCESSING");
-                        numItems = Integer.parseInt(in.readUTF());
-                        for(int i = 0; i < numItems; i++){
-                            stockNum = in.readUTF();
-                            quantity = Integer.parseInt(in.readUTF());
-                            System.out.println("ITEM " + (i+1) + " STOCK NUMBER: " + stockNum + " QUANTITY: " + quantity);
-                        }
+                    System.out.println(request);
 
+                    if (request.equals("ORDER")) {
+                        processOrder();
+                    } 
+                    else if (request.equals("INVENTORY")) {
+                        processInventory();
                     }
-                    else if (request.equals("INVENTORY")){
-                        System.out.println("INVENTORY REQUEST"); 
-                    }
-                    
-
                 }
-                catch(IOException i)
-                {
-                    System.out.println(i);
+
+            } catch (Exception e) {
+                System.out.println("Error in server connection: " + e.getMessage());
+
+            } finally {
+                try {
+                    if (in != null) {
+                        in.close();
+                    }
+
+                    if (s != null) {
+                        s.close();
+                    }
+
+                } catch (IOException e) {
+                    System.out.println("Error in server connection: " + e.getMessage());
                 }
             }
-            System.out.println("Closing connection");
-
-            // Close connection
-            s.close();
-            in.close();
         }
-        catch(IOException i)
-        {
-            System.out.println(i);
+
+        private void processOrder() throws Exception {
+            System.out.println("ORDER PROCESSING");
+
+            int numItems = Integer.parseInt(in.readUTF());
+
+            for (int i = 0; i < numItems; i++) {
+                String stockNum = in.readUTF();
+                int quantity = Integer.parseInt(in.readUTF());
+
+                System.out.println(
+                    " STOCK NUMBER: " + stockNum +
+                    " QUANTITY: " + quantity
+                );
+
+            }
+
+            System.out.println("ORDER PROCESSED");
+            ExternalWorld.displayState(connection);
+        }
+
+        private void processInventory() throws Exception {
+            String sql = """
+                SELECT stock_num, quantity
+                FROM PRODUCTS
+                ORDER BY stock_num
+                """;
+
+            try (PreparedStatement statement = connection.prepareStatement(sql);
+                ResultSet resultSet = statement.executeQuery()) {
+
+                List<Item> items = new ArrayList<>();
+
+                while (resultSet.next()) {
+                    String stockNum = resultSet.getString("stock_num");
+                    int quantity = resultSet.getInt("quantity");
+
+                    items.add(new Item(stockNum, quantity));
+                }
+
+                out.writeUTF(Integer.toString(items.size()));
+
+                for (Item item : items) {
+                    out.writeUTF(item.getStockNum());
+                    out.writeUTF(Integer.toString(item.getQuantity()));
+                }
+                out.flush();
+            }
         }
     }
 }
