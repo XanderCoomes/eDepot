@@ -95,20 +95,24 @@ public class Server extends Thread {
 
         private void processOrder() throws Exception {
             System.out.println("ORDER PROCESSING");
+            String stockNum;
+            int quantity;
 
+            List<Item> orderItems = new ArrayList<>();
             int numItems = Integer.parseInt(in.readUTF());
 
             for (int i = 0; i < numItems; i++) {
-                String stockNum = in.readUTF();
-                int quantity = Integer.parseInt(in.readUTF());
+                stockNum = in.readUTF();
+                quantity = Integer.parseInt(in.readUTF());
 
                 System.out.println(
                     " STOCK NUMBER: " + stockNum +
                     " QUANTITY: " + quantity
                 );
-
+                Item orderItem = new Item(stockNum, quantity);
+                orderItems.add(orderItem);
             }
-
+            OrderDAO.processOrder(connection, orderItems);
             System.out.println("ORDER PROCESSED");
             ExternalWorld.displayState(connection);
         }
