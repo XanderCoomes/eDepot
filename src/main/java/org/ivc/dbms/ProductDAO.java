@@ -66,7 +66,7 @@ public class ProductDAO {
 
     }
 
-    private static String incrementStockNum(String stockNum) throws SQLException {
+    public static String incrementStockNum(String stockNum) throws SQLException {
         String prefix = stockNum.substring(0, 2);   // "AA"
         String numberPart = stockNum.substring(2); // "00042"
     

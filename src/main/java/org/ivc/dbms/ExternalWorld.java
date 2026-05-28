@@ -47,7 +47,7 @@ public class ExternalWorld {
 
     public static void displayOptions(){
         System.out.println();
-        System.out.println("OPTIONS: [1] SHIPPING NOTICE  [2] DELIVER SHIPMENT  [3] CHECK QTY  [4] PRINT PRODUCTS  [5]PRINT NOTICES  [6] QUIT");
+        System.out.println("OPTIONS: [1] SHIPPING NOTICE  [2] DELIVER SHIPMENT  [3] CHECK QTY  [4] PRINT PRODUCTS  [5] PRINT NOTICES  [6] QUIT");
         System.out.print("ENTER AN OPTION: ");
     }
 
@@ -170,13 +170,17 @@ public class ExternalWorld {
         int maxStockLevel; 
         int shipQuantity;
 
+        String newProdStockNum = "0";
+
         List<Product> newProducts = new ArrayList<>(); 
         List<Item> shipmentItems = new ArrayList<>(); 
 
         boolean keepAddingItems;
 
         String noticeID = readNoticeID(connection, scanner,  "ENTER A NOTICE ID: ");
+        if(noticeID.equals("-1")){return;}
         String carrier = readNonEmptyString(scanner, "ENTER A CARRIER: ");
+        if(carrier.equals("-1")){return;}
 
         do{
             manufacturer = readNonEmptyString(scanner, "ENTER A MANUFACTURER: ");
@@ -186,10 +190,15 @@ public class ExternalWorld {
                 stockNum = ProductDAO.getStockNum(connection, manufacturer, modelNumber);
 
             }catch(SQLException e){
-                stockNum = ProductDAO.newStockNum(connection);
+                if(newProducts.isEmpty()){
+                    stockNum = ProductDAO.newStockNum(connection);
+                    newProdStockNum = stockNum;
+                }else{
+                    stockNum = ProductDAO.incrementStockNum(newProdStockNum);
+                }
                 location = readLocation(scanner, "ENTER A LOCATION E.G. (A6): ");
                 minStockLevel = readPositiveInt(scanner, "ENTER A MIN STOCK LEVEL: ");
-                maxStockLevel = readPositiveInt(scanner, "ENTER A MAX STOCK LEVEL: "); 
+                maxStockLevel = readPositiveInt(scanner, "ENTER A MAX STOCK LEVEL: ");
                 Product newProduct = new Product(stockNum, location, manufacturer, modelNumber, 0, minStockLevel, maxStockLevel, 0);
                 newProducts.add(newProduct);
             }
