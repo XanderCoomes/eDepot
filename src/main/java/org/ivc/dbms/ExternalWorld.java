@@ -11,9 +11,9 @@ public class ExternalWorld {
             try (Scanner scanner = new Scanner(System.in)) {
                 UtilsDAO.resetDatabase(connection);
                 ProductLoader.loadProducts(connection, "data/StarterData.xlsx");
-                displayState(connection);
-                int input = readPositiveInt(scanner, "ENTER OPTION: ");
-                while(input != 3){
+                displayOptions();
+                int input = readPositiveInt(scanner, "");
+                while(input != 6){
                     switch (input) {
                         case 1 -> {
                             readShipmentNotice(connection, scanner);
@@ -21,12 +21,21 @@ public class ExternalWorld {
                         case 2 -> {
                             readShipmentDelivery(connection, scanner);
                         }
+                        case 3 -> {
+                            checkQuantity(connection, scanner);
+                        }
+                        case 4 -> {
+                            ProductDAO.printProducts(connection);
+                        }
+                        case 5 -> {
+                            ShipmentDAO.printShipmentNotices(connection);
+                        }
                         default -> {
                             System.out.println("PLEASE ENTER A VALID INPUT");
                         }
                     }
-                    displayState(connection);
-                    input = readPositiveInt(scanner, "ENTER OPTION: ");
+                    displayOptions();
+                    input = readPositiveInt(scanner, "");
                 }
             }
         }catch(Exception e){
@@ -35,20 +44,29 @@ public class ExternalWorld {
         }
     }
 
-    public static void displayState(Connection connection) throws Exception{
-        ProductDAO.printProducts(connection);
-        ShipmentDAO.printShipmentNotices(connection);
-        displayOptions(); 
-    }
 
     public static void displayOptions(){
-        System.out.println("OPTIONS:");
-        System.out.println("1: DELIVER SHIPPING NOTICE");
-        System.out.println("2: DELIVER SHIPMENT");
-        System.out.println("3: END INTERFACE");
+        System.out.println();
+        System.out.println("OPTIONS: [1] SHIPPING NOTICE  [2] DELIVER SHIPMENT  [3] CHECK QTY  [4] PRINT PRODUCTS  [5]PRINT NOTICES  [6] QUIT");
+        System.out.print("ENTER AN OPTION: ");
+    }
+
+    public static void checkQuantity(Connection connection, Scanner scanner) throws SQLException{
+        while (true) {
+            System.out.print("ENTER A STOCK NUM: ");
+            String stockNum = scanner.nextLine().trim();
+    
+            try{
+                int quantity = ProductDAO.getQuantity(connection, stockNum);
+                System.out.println("QUANTITY: " + quantity);
+                return;
+            }catch (SQLException e){
+                System.out.println("PLEASE ENTER A VALID STOCK NUM");
+            }
+        }
     }
    
-    public static String readNoticeID(Scanner scanner, Connection connection, String prompt) throws SQLException{
+    public static String readNoticeID(Connection connection, Scanner scanner, String prompt) throws SQLException{
         String noticeID; 
         while (true) {
             noticeID = readNonEmptyString(scanner, prompt);
@@ -56,7 +74,7 @@ public class ExternalWorld {
                 return noticeID;
             }
             else{
-                System.out.println("NOTICE ID" + noticeID + " WAS ALREADY USED");
+                System.out.println("NOTICE ID " + noticeID + " WAS ALREADY USED");
             }
         }
     }
@@ -126,10 +144,9 @@ public class ExternalWorld {
     }
 
     public static void printShipmentInfo(String noticeID, String carrier, List<Item> shipmentItems) {
+        System.out.println();
         System.out.println("NOTICE ID: " + noticeID);
         System.out.println("CARRIER:   " + carrier);
-        System.out.println();
-    
         System.out.println("SHIPMENT ITEMS:");
         System.out.printf("%-20s %-20s %10s%n", "MANUFACTURER", "MODEL NUMBER", "QUANTITY");
         System.out.println("------------------------------------------------------");
@@ -158,7 +175,7 @@ public class ExternalWorld {
 
         boolean keepAddingItems;
 
-        String noticeID = readNoticeID(scanner, connection, "ENTER A NOTICE ID: ");
+        String noticeID = readNoticeID(connection, scanner,  "ENTER A NOTICE ID: ");
         String carrier = readNonEmptyString(scanner, "ENTER A CARRIER: ");
 
         do{
@@ -184,11 +201,14 @@ public class ExternalWorld {
             keepAddingItems = readYesNo(scanner, "ENTER MORE ITEMS");
         }while(keepAddingItems == true);
 
+
         printShipmentInfo(noticeID, carrier, shipmentItems);
-        if(!readYesNo(scanner, "CONFIRM SHIPMENT ORDER")){
+        if(!readYesNo(scanner, "CONFIRM SHIPPING NOTICE")){
+            System.out.println("SHIPPING NOTICE CANCELLED");
             return;
         }
 
+        System.out.println("SHIPPING NOTICE " + noticeID + " HAS BEEN CONFIRMED");
         for (Product newProduct : newProducts){
             ProductDAO.addProduct(connection, newProduct);
         }
@@ -201,6 +221,7 @@ public class ExternalWorld {
         String noticeID = "SOMETHING";
         try{
             noticeID = readNonEmptyString(scanner, "ENTER AN EXISTING NOTICE ID: ");
+
             ShipmentDAO.receiveShipment(connection, noticeID);
     
         }catch(SQLException e){

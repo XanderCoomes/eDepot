@@ -114,8 +114,7 @@ public class Server extends Thread {
             }
             OrderDAO.processOrder(connection, orderItems);
             System.out.println("ORDER PROCESSED");
-            ExternalWorld.displayState(connection);
-        }
+        }        
 
         private void processInventory() throws Exception {
             String sql = """
