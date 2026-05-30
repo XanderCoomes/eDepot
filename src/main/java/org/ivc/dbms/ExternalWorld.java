@@ -230,7 +230,6 @@ public class ExternalWorld {
         String noticeID = "SOMETHING";
         try{
             noticeID = readNonEmptyString(scanner, "ENTER AN EXISTING NOTICE ID: ");
-
             ShipmentDAO.receiveShipment(connection, noticeID);
     
         }catch(SQLException e){

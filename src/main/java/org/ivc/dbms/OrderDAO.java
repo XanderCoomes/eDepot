@@ -11,6 +11,10 @@ public class OrderDAO {
     public static void fillOrderItem(Connection connection, Item orderItem) throws SQLException{
         int oldQuantity = ProductDAO.getQuantity(connection, orderItem.getStockNum());
         int newQuantity = oldQuantity - orderItem.getQuantity(); 
+        if(newQuantity < 0){
+            System.out.println("ERROR FOR ORDER ITEM " + orderItem.getStockNum() + " QUANTITY REQUESTED: " + orderItem.getQuantity() + " QUANTITY DELIVERED: " + oldQuantity);
+            newQuantity = 0;
+        }
         ProductDAO.setQuantity(connection, orderItem.getStockNum(), newQuantity);
     }
 
