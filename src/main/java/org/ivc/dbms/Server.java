@@ -61,10 +61,8 @@ public class Server extends Thread {
                 );
 
                 String request = "";
-
                 while (!request.equals("Over")) {
                     request = in.readUTF();
-                    System.out.println(request);
 
                     if (request.equals("ORDER")) {
                         processOrder();

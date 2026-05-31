@@ -44,7 +44,6 @@ public class ExternalWorld {
         }
     }
 
-
     public static void displayOptions(){
         System.out.println();
         System.out.println("OPTIONS: [1] SHIPPING NOTICE  [2] DELIVER SHIPMENT  [3] CHECK QTY  [4] PRINT PRODUCTS  [5] PRINT NOTICES  [6] QUIT");
