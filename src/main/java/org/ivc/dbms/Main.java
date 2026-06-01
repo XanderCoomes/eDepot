@@ -6,8 +6,9 @@ public class Main {
         try (OracleConnection connection = DatabaseDAO.getConnection()) {
             Server server = new Server(8001, connection);
             server.start();
-            UtilsDAO.resetDatabase(connection);
-            ProductLoader.loadProducts(connection, "data/StarterData.xlsx");
+            // UtilsDAO.resetDatabase(connection);
+            // ProductLoader.loadProducts(connection, "data/StarterData.xlsx");
+            Thread.sleep(1000); // wait 1 second
             ExternalWorld.runInterface(connection);
         } catch (Exception e) {
             System.out.println("ERROR:");

@@ -9,10 +9,8 @@ public class ExternalWorld {
     public static void runInterface(Connection connection){
         try{
             try (Scanner scanner = new Scanner(System.in)) {
-                UtilsDAO.resetDatabase(connection);
-                ProductLoader.loadProducts(connection, "data/StarterData.xlsx");
                 displayOptions();
-                int input = readPositiveInt(scanner, "");
+                int input = readIntGreaterThanEqualTo(scanner, "ENTER AN OPTION: ", 0);
                 while(input != 6){
                     switch (input) {
                         case 1 -> {
@@ -28,14 +26,14 @@ public class ExternalWorld {
                             ProductDAO.printProducts(connection);
                         }
                         case 5 -> {
-                            ShipmentDAO.printShipmentNotices(connection);
+                            ShipmentDAO.printAllShipmentNotices(connection);
                         }
                         default -> {
                             System.out.println("PLEASE ENTER A VALID INPUT");
                         }
                     }
                     displayOptions();
-                    input = readPositiveInt(scanner, "");
+                    input = readIntGreaterThanEqualTo(scanner, "ENTER AN OPTION: ", 0);
                 }
             }
         }catch(Exception e){
@@ -47,7 +45,6 @@ public class ExternalWorld {
     public static void displayOptions(){
         System.out.println();
         System.out.println("OPTIONS: [1] SHIPPING NOTICE  [2] DELIVER SHIPMENT  [3] CHECK QTY  [4] PRINT PRODUCTS  [5] PRINT NOTICES  [6] QUIT");
-        System.out.print("ENTER AN OPTION: ");
     }
 
     public static void checkQuantity(Connection connection, Scanner scanner) throws SQLException{
@@ -93,7 +90,7 @@ public class ExternalWorld {
         }
     }
 
-    public static int readPositiveInt(Scanner scanner, String prompt) {
+    public static int readIntGreaterThanEqualTo(Scanner scanner, String prompt, int comp) {
         while (true) {
             System.out.print(prompt);
             String input = scanner.nextLine().trim();
@@ -101,11 +98,11 @@ public class ExternalWorld {
             try {
                 int value = Integer.parseInt(input);
     
-                if (value >= 0) {
+                if (value >= comp) {
                     return value;
                 }
     
-                System.out.println("VALUE MUST BE POSITIVE.");
+                System.out.println("VALUE MUST BE GREATER THAN OR EQUAL TO: " + comp);
             } catch (NumberFormatException e) {
                 System.out.println("PLEASE ENTER A VALID INTEGER.");
             }
@@ -177,14 +174,11 @@ public class ExternalWorld {
         boolean keepAddingItems;
 
         String noticeID = readNoticeID(connection, scanner,  "ENTER A NOTICE ID: ");
-        if(noticeID.equals("-1")){return;}
         String carrier = readNonEmptyString(scanner, "ENTER A CARRIER: ");
-        if(carrier.equals("-1")){return;}
-
         do{
             manufacturer = readNonEmptyString(scanner, "ENTER A MANUFACTURER: ");
             modelNumber = readNonEmptyString(scanner, "ENTER A MODEL NUMBER: ");
-            shipQuantity = readPositiveInt(scanner, "ENTER QUANTITY SHIPPED: ");
+            shipQuantity = readIntGreaterThanEqualTo(scanner, "ENTER QUANTITY SHIPPED: ", 1);
             try{
                 stockNum = ProductDAO.getStockNum(connection, manufacturer, modelNumber);
 
@@ -196,8 +190,8 @@ public class ExternalWorld {
                     stockNum = ProductDAO.incrementStockNum(newProdStockNum);
                 }
                 location = readLocation(scanner, "ENTER A LOCATION E.G. (A6): ");
-                minStockLevel = readPositiveInt(scanner, "ENTER A MIN STOCK LEVEL: ");
-                maxStockLevel = readPositiveInt(scanner, "ENTER A MAX STOCK LEVEL: ");
+                minStockLevel = readIntGreaterThanEqualTo(scanner, "ENTER A MIN STOCK LEVEL: ", 0);
+                maxStockLevel = readIntGreaterThanEqualTo(scanner, "ENTER A MAX STOCK LEVEL: ", Math.max(1, minStockLevel));
                 Product newProduct = new Product(stockNum, location, manufacturer, modelNumber, 0, minStockLevel, maxStockLevel, 0);
                 newProducts.add(newProduct);
             }
@@ -229,10 +223,22 @@ public class ExternalWorld {
         String noticeID = "SOMETHING";
         try{
             noticeID = readNonEmptyString(scanner, "ENTER AN EXISTING NOTICE ID: ");
-            ShipmentDAO.receiveShipment(connection, noticeID);
-    
+            ShipmentDAO.printShipmentNotices(connection, noticeID);
+            int status = ShipmentDAO.getShipmentStatus(connection, noticeID);
+            if(status == 1){
+                System.out.println("SHIPMENT ALREADY FILLED");
+            }
+            else if(readYesNo(scanner, "CONFIRM SHIPMENT DELIVERY")){
+                ShipmentDAO.receiveShipment(connection, noticeID);
+                System.out.println("SHIPMENT DELIVERY RECEIVED");
+            }
+            else{
+                System.out.println("SHIPMENT DELIVERY CANCELLED");
+            }
+            
         }catch(SQLException e){
             System.out.println("NO SHIPMENT FOUND WITH NOTICE ID: " + noticeID);
+            System.out.println(e);
         } 
         
     }

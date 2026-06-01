@@ -132,7 +132,61 @@ public class ShipmentDAO {
         }
     }
 
-    public static void printShipmentNotices(Connection connection) throws SQLException {
+    public static void printShipmentNotices(Connection connection, String noticeID) throws SQLException {
+        String sql = """
+            SELECT N.notice_id, N.carrier, N.is_filled, I.stock_num, I.quantity
+            FROM SHIPNOTICES N
+            LEFT JOIN SHIPITEMS I
+                ON N.notice_id = I.notice_id
+            WHERE N.notice_id = ?
+            ORDER BY I.stock_num
+            """;
+    
+        try (PreparedStatement statement = connection.prepareStatement(sql)){
+            statement.setString(1, noticeID);
+            String currentNoticeID = null;
+            boolean hasAnyNotices = false;
+            try(ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    hasAnyNotices = true;
+                    String carrier = resultSet.getString("carrier");
+                    int isFilled = resultSet.getInt("is_filled");
+        
+                    if (!noticeID.equals(currentNoticeID)) {
+                        if (currentNoticeID != null) {
+                            System.out.println();
+                        }
+        
+                        currentNoticeID = noticeID;
+        
+                        System.out.println("==============================================");
+                        System.out.println("NOTICE ID: " + noticeID);
+                        System.out.println("CARRIER:   " + carrier);
+                        System.out.println("STATUS:    " + (isFilled == 1 ? "Filled" : "Not Filled"));
+                        System.out.println("----------------------------------------------");
+                        System.out.printf("%-12s %10s%n", "STOCK NUM", "QUANTITY");
+                        System.out.println("----------------------------------------------");
+                    }
+        
+                    String stockNum = resultSet.getString("stock_num");
+        
+                    if (stockNum != null) {
+                        int quantity = resultSet.getInt("quantity");
+        
+                        System.out.printf("%-12s %10d%n", stockNum, quantity);
+                    } else {
+                        System.out.println("No shipment items for this notice.");
+                    }
+                }
+        
+                if (!hasAnyNotices) {
+                    System.out.println("No shipment notices found.");
+                }
+            }
+        }
+    }
+
+    public static void printAllShipmentNotices(Connection connection) throws SQLException {
         String sql = """
             SELECT N.notice_id, N.carrier, N.is_filled, I.stock_num, I.quantity
             FROM SHIPNOTICES N
