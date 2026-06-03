@@ -59,13 +59,64 @@ public class OrderDAO {
         }
     }
 
-    public static void processOrder(Connection connection, List<Item> orderItems) throws SQLException{
+    public static void addOrder(Connection connection, int orderID) throws SQLException {
+        String query = """
+                INSERT INTO ORDERS (
+                    order_id
+                )
+                VALUES (?)
+                """;
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, orderID);
+
+            int rowsInserted = statement.executeUpdate();
+
+            if (rowsInserted != 1) {
+                throw new SQLException("Shipping notice insert failed for orderID: " + orderID);
+            }
+        }
+    }
+
+    public static void addReplItems(Connection connection, int orderID, List<String> stockNums) throws SQLException {
+        String query = """
+                INSERT INTO REPLITEMS (
+                    stock_num,
+                    order_id
+                )
+                VALUES (?, ?)
+                """;
+    
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            for (String stockNum : stockNums) {
+                statement.setString(1, stockNum);
+                statement.setInt(2, orderID);
+                statement.addBatch();
+            }
+    
+            int[] rowsInserted = statement.executeBatch();
+    
+            for (int rows : rowsInserted) {
+                if (rows != 1) {
+                    throw new SQLException("One or more order item inserts failed for orderID: " + orderID);
+                }
+            }
+        }
+    }
+
+    public static void processOrder(Connection connection, int orderID, List<Item> orderItems) throws SQLException{
+        try{
+            addOrder(connection, orderID);
+        }catch (SQLException e){
+            System.out.println("Error Adding Order ");
+        }
         fillOrderItems(connection, orderItems); 
         List<String> manufacturers = getDistinctManufacturersByOrderItems(connection, orderItems);
         List<String> lowStockNums;
         for(String manufacturer: manufacturers){
             if(isManufacturerLow(connection, manufacturer)){
                 lowStockNums = getStockNumsBelowMaxByManufacturer(connection, manufacturer); 
+                addReplItems(connection, orderID, lowStockNums);
                 printReplenishmentOrder(connection, manufacturer, lowStockNums); 
             }
         }

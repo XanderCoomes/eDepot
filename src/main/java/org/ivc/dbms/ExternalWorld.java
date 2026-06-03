@@ -238,7 +238,6 @@ public class ExternalWorld {
             
         }catch(SQLException e){
             System.out.println("NO SHIPMENT FOUND WITH NOTICE ID: " + noticeID);
-            System.out.println(e);
         } 
         
     }

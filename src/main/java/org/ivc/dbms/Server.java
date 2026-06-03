@@ -95,6 +95,7 @@ public class Server extends Thread {
             System.out.println("ORDER PROCESSING");
             String stockNum;
             int quantity;
+            int orderID = Integer.parseInt(in.readUTF());
 
             List<Item> orderItems = new ArrayList<>();
             int numItems = Integer.parseInt(in.readUTF());
@@ -110,7 +111,7 @@ public class Server extends Thread {
                 Item orderItem = new Item(stockNum, quantity);
                 orderItems.add(orderItem);
             }
-            OrderDAO.processOrder(connection, orderItems);
+            OrderDAO.processOrder(connection, orderID, orderItems);
             System.out.println("ORDER PROCESSED");
         }        
 

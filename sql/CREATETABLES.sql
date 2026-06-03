@@ -28,4 +28,19 @@ CREATE TABLE SHIPITEMS(
     FOREIGN KEY(notice_id) REFERENCES SHIPNOTICES(notice_id)
 );
 
+CREATE TABLE ORDERS(
+    order_id INTEGER, 
+    PRIMARY KEY(order_id)
+);
+
+CREATE TABLE REPLITEMS(
+    stock_num CHAR(7),
+    order_id INT, 
+    FOREIGN KEY(stock_num) REFERENCES PRODUCTS(stock_num), 
+    FOREIGN KEY(order_id) REFERENCES ORDERS(order_id), 
+    PRIMARY KEY(stock_num, order_id)
+);
+
+
+
 

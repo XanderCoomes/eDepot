@@ -29,13 +29,14 @@ public class Tester {
 
     public static void testSimpleOrder(Connection connection) throws SQLException{
         List<Item> orderItems = new ArrayList<>();
+        int orderID = 0;
         Item item1 = new Item("AA00101", 2);
         Item item2 = new Item("AA00501", 2);
         Item item3 = new Item("AA00601", 2);
         orderItems.add(item1);
         orderItems.add(item2);
         orderItems.add(item3);
-        OrderDAO.processOrder(connection, orderItems);
+        OrderDAO.processOrder(connection, orderID,  orderItems);
     }
 
     public static void testShipmentNotice(Connection connection) throws SQLException{
@@ -97,6 +98,7 @@ public class Tester {
         ProductDAO.addProduct(connection, p);
     }
     public static void testComplexOrder(Connection connection) throws SQLException{
+        int orderID = 1;
         testHPAddProduct(connection);
         testDellAddProducts(connection);
         ProductDAO.printProducts(connection);
@@ -114,7 +116,7 @@ public class Tester {
         orderItems.add(item5);
         orderItems.add(item6);
 
-        OrderDAO.processOrder(connection, orderItems);
+        OrderDAO.processOrder(connection, orderID, orderItems);
 
 
     }
