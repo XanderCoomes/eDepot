@@ -9,11 +9,20 @@ public class UtilsDAO {
         String deleteShipItems = "DELETE FROM SHIPITEMS";
         String deleteShipNotices = "DELETE FROM SHIPNOTICES";
         String deleteProducts = "DELETE FROM PRODUCTS";
+        String deleteReplItems = "DELETE FROM REPLITEMS";
+        String deleteOrders = "DELETE FROM ORDERS";
 
         boolean oldAutoCommit = connection.getAutoCommit();
 
         try {
             connection.setAutoCommit(false);
+            try (PreparedStatement ps = connection.prepareStatement(deleteReplItems)) {
+                ps.executeUpdate();
+            }
+
+            try (PreparedStatement ps = connection.prepareStatement(deleteOrders)) {
+                ps.executeUpdate();
+            }
 
             try (PreparedStatement ps = connection.prepareStatement(deleteShipItems)) {
                 ps.executeUpdate();
