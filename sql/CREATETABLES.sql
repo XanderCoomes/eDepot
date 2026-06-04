@@ -24,8 +24,8 @@ CREATE TABLE SHIPITEMS(
     notice_id VARCHAR(50),
     quantity INT,
     PRIMARY KEY(stock_num, notice_id), 
-    FOREIGN KEY(stock_num) REFERENCES PRODUCTS(stock_num), 
-    FOREIGN KEY(notice_id) REFERENCES SHIPNOTICES(notice_id)
+    FOREIGN KEY(stock_num) REFERENCES PRODUCTS(stock_num) ON DELETE CASCADE, 
+    FOREIGN KEY(notice_id) REFERENCES SHIPNOTICES(notice_id) ON DELETE CASCADE
 );
 
 CREATE TABLE ORDERS(
@@ -36,8 +36,8 @@ CREATE TABLE ORDERS(
 CREATE TABLE REPLITEMS(
     stock_num CHAR(7),
     order_id INT, 
-    FOREIGN KEY(stock_num) REFERENCES PRODUCTS(stock_num), 
-    FOREIGN KEY(order_id) REFERENCES ORDERS(order_id), 
+    FOREIGN KEY(stock_num) REFERENCES PRODUCTS(stock_num) ON DELETE CASCADE, 
+    FOREIGN KEY(order_id) REFERENCES ORDERS(order_id) ON DELETE CASCADE, 
     PRIMARY KEY(stock_num, order_id)
 );
 
