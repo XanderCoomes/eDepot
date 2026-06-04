@@ -21,7 +21,8 @@ CREATE TABLE SHIPNOTICES(
 
 CREATE TABLE SHIPITEMS(
     stock_num CHAR(7),
-    notice_id VARCHAR(50), 
+    notice_id VARCHAR(50),
+    quantity INT,
     PRIMARY KEY(stock_num, notice_id), 
     FOREIGN KEY(stock_num) REFERENCES PRODUCTS(stock_num), 
     FOREIGN KEY(notice_id) REFERENCES SHIPNOTICES(notice_id)
