@@ -10,17 +10,15 @@ public class ShipmentDAO {
         String query = """
                 INSERT INTO SHIPITEMS (
                     stock_num,
-                    notice_id,
-                    quantity
+                    notice_id
                 )
-                VALUES (?, ?, ?)
+                VALUES (?, ?)
                 """;
     
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             for (Item item : shipmentItems) {
                 statement.setString(1, item.getStockNum());
                 statement.setString(2, noticeID);
-                statement.setInt(3, item.getQuantity());
                 statement.addBatch();
             }
     
